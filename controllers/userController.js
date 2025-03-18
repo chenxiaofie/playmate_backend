@@ -23,7 +23,7 @@ const login = async (req, res) => {
     const { username, password, phone, verificationCode } = req.body;
 
     // 调用服务层登录用户
-    const user = await userService.login(username, password, phone, verificationCode,req.clientIP);
+    const user = await userService.login(username, password, phone, verificationCode, req.clientIP);
 
     // 生成 JWT
     const token = generateToken(user.user_id);
@@ -56,10 +56,23 @@ const sendVerificationCode = async (req, res) => {
   }
 };
 
-
+const getUserInfo = async (req, res) => {
+  try {
+    // 调用服务层获取用户
+    const user = await userService.getUserInfo(req.user);
+    logger.user.info(`用户信息: IP=${req.clientIP}, username=${user.username}`);
+    // 返回成功响应
+    res.status(200).json(successResponse(user, '用户信息获取成功'));
+  } catch (error) {
+    logger.user.error(`用户信息获取失败: IP=${req.clientIP}, Error=${error.message}`);
+    // 返回错误响应
+    res.status(500).json(errorResponse(error.message));
+  }
+}
 
 module.exports = {
   register,
   login,
+  getUserInfo,
   sendVerificationCode
 };

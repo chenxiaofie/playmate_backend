@@ -1,11 +1,11 @@
 const snowflake = require("../utils/snowflake");
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   return sequelize.define('users', {
     user_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      defaultValue: () => snowflake.generate(), // 使用雪花算法生成 ID
+      defaultValue: () => snowflake.generate(), 
       comment: "用户唯一标识 "
     },
     username: {
@@ -44,7 +44,7 @@ module.exports = function(sequelize, DataTypes) {
       comment: "收款码 URL"
     },
     payment_method: {
-      type: DataTypes.ENUM('payment_account','qr_code'),
+      type: DataTypes.ENUM('payment_account', 'qr_code'),
       allowNull: true,
       defaultValue: "qr_code",
       comment: "收款方式"
@@ -71,6 +71,9 @@ module.exports = function(sequelize, DataTypes) {
           { name: "email" },
         ]
       },
-    ]
+    ],
+    defaultScope: {
+      attributes: { exclude: ['password'] }, // 默认排除 password
+    },
   });
 };

@@ -56,7 +56,7 @@ const register = async (userData) => {
 
   return userWithRoles;
 };
-const login = async (username, password, phone, verificationCode,clientIP) => {
+const login = async (username, password, phone, verificationCode, clientIP) => {
   // 🚨 确保至少有一个有效值
   if (!username && !phone) {
     throw new Error("用户名或手机号必填");
@@ -70,7 +70,7 @@ const login = async (username, password, phone, verificationCode,clientIP) => {
     }
 
     await verifyCode(phone, verificationCode); // 验证验证码
- 
+
     // 查找用户
     const user = await User.findOne({
       where: { phone },
@@ -93,11 +93,12 @@ const login = async (username, password, phone, verificationCode,clientIP) => {
     // 构建查询条件
     const whereCondition = { username };
 
-    // 查找用户
     const user = await User.findOne({
       where: whereCondition,
-      include: [{ model: Role, through: { attributes: [] } }],
+      attributes: { include: ['password'] }, // 明确指定 User 的字段
+      include: [{ model: Role, attributes: { exclude: ['password'] }, through: { attributes: [] } }], // 确保 Role 里没有 password
     });
+
 
     if (!user) {
       throw new Error(`${username} 用户不存在`);
@@ -124,8 +125,12 @@ const login = async (username, password, phone, verificationCode,clientIP) => {
   throw new Error('无效的登录方式');
 };
 
+const getUserInfo = async (user) => {
+  return user
+};
 
 module.exports = {
   register,
   login,
+  getUserInfo
 };
