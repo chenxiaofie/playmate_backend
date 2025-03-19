@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { User, Role } = require('../models');
+const { User, Role, Order } = require('../models');
 const snowflake = require('../utils/snowflake'); // 引入雪花算法工具
 const { verifyCode } = require('./smsService');
 const logger = require('../utils/logger'); // 引入日志模块
@@ -126,7 +126,15 @@ const login = async (username, password, phone, verificationCode, clientIP) => {
 };
 
 const getUserInfo = async (user) => {
-  return user
+   // 获取用户并排除循环引用
+   const userData = await user.toJSON();  // 使用 toJSON() 转换为纯对象
+  
+  // 查询用户最新的订单
+  const latestOrder = await Order.findOne({
+    where: { user_id: userData.user_id },
+    order: [["createdAt", "DESC"]] // 获取最近的一笔订单
+  });
+  return { ...userData, latestOrder }; // 合并数据
 };
 
 module.exports = {
