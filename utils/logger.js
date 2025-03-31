@@ -12,6 +12,7 @@ const logConfigMap = new Map([
   ['user', { filename: 'logs/user-%DATE%.log', level: 'info' }],
   ['order', { filename: 'logs/order-%DATE%.log', level: 'info' }],
   ['payment', { filename: 'logs/payment-%DATE%.log', level: 'info' }],
+  ['team', { filename: 'logs/team-%DATE%.log', level: 'info' }],
 ]);
 
 // 创建日志对象

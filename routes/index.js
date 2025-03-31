@@ -3,14 +3,19 @@ const userRoutes = require('./userRoutes');
 const gameRoutes = require('./gameRoutes');
 const orderRoutes = require('./orderRoutes');
 const paymentRoutes = require('./paymentRoutes');
+const subscriptions  = require('./subscriptions');
+const teams  = require('./teams');
 
 const router = express.Router();
 
 // 用户路由
 router.use('/users', userRoutes);
-
 // 游戏路由
 router.use('/games', gameRoutes);
+// 订阅计划
+router.use('/subscriptions', subscriptions);
+// 团队路由
+router.use('/teams', teams);
 
 // 订单路由
 // router.use('/orders', orderRoutes);
