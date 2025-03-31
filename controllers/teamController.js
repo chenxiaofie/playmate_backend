@@ -16,6 +16,7 @@ const createTeam = async (req, res) => {
 const joinTeam = async (req, res) => {
     try {
         const teamId = req.params.id;  // 从URL参数获取团队id
+        const { }=req.body;
         console.log('查看id',teamId)
         // ... 处理加入团队的逻辑 ...
         

@@ -1,3 +1,4 @@
+const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('games', {
     game_id: {
@@ -21,6 +22,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(255),
       allowNull: true,
       comment: "游戏封面"
+    },
+    rank_data: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "游戏段位"
     }
   }, {
     sequelize,
