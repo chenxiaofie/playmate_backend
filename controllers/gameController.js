@@ -21,8 +21,8 @@ const queryGame = async (req, res) => {
     const { game_name } = req.query;
 
     // 调用服务层查询游戏
-    const games = await gameService.queryGames({ 
-      game_name
+    const games = await gameService.queryGames({
+      game_name,
     });
 
     // 返回成功响应
@@ -35,5 +35,5 @@ const queryGame = async (req, res) => {
 
 module.exports = {
   addGame,
-  queryGame
+  queryGame,
 };
