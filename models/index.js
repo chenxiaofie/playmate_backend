@@ -30,6 +30,7 @@ Games.hasMany(GamePartnerPrice, { as: 'gamePartnerPrices', foreignKey: 'game_id'
 Games.hasMany(PartnerGameTag, { as: 'gamePartnerTags', foreignKey: 'game_id' });
 Games.belongsToMany(Tag, { as: 'gameTags', through: GameTag, foreignKey: 'game_id', otherKey: 'tag_id' });
 Games.hasMany(GameTag, { as: 'gameTagRelations', foreignKey: 'game_id' });
+Games.hasMany(Order, { as: 'orders', foreignKey: 'game_id' });
 
 // 用户和角色
 Role.belongsToMany(User, { through: userRoles, foreignKey: 'role_id', otherKey: 'user_id' });
@@ -38,6 +39,8 @@ Role.hasMany(userRoles, { as: 'roleUserRoles', foreignKey: 'role_id' });
 
 // 订单和用户
 Order.belongsTo(User, { as: 'orderUser', foreignKey: 'user_id' });
+Order.belongsTo(GamePartner, { as: 'partner', foreignKey: 'partner_id' });
+Order.belongsTo(Games, { as: 'game', foreignKey: 'game_id' });
 
 // 用户角色表
 userRoles.belongsTo(Role, { as: 'userRole', foreignKey: 'role_id' });
@@ -70,6 +73,7 @@ GamePartner.belongsTo(User, { as: 'partnerUser', foreignKey: 'user_id' });
 GamePartner.hasMany(PartnerGameTag, { as: 'partnerGameTags', foreignKey: 'partner_id' });
 GamePartner.hasMany(GamePartnerPrice, { as: 'partnerPrices', foreignKey: 'partner_id' });
 GamePartner.hasMany(TeamMember, { as: 'partnerTeamMembers', foreignKey: 'partner_id' });
+GamePartner.hasMany(Order, { as: 'orders', foreignKey: 'partner_id' });
 
 // 陪玩游戏单价
 GamePartnerPrice.belongsTo(GamePartner, { as: 'pricePartner', foreignKey: 'partner_id' });

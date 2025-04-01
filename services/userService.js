@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { User, Role, Order } = require('../models');
+const { User, Role, Order, Games, GamePartner } = require('../models');
 const snowflake = require('../utils/snowflake'); // 引入雪花算法工具
 const { verifyCode } = require('./smsService');
 const logger = require('../utils/logger'); // 引入日志模块
@@ -11,7 +11,6 @@ const register = async (userData) => {
   if (existingUserByUsername) {
     throw new Error('用户名已存在');
   }
-
 
   // // 检查邮箱是否已存在
   // const existingUserByEmail = await User.findOne({ where: { email } });
@@ -59,7 +58,7 @@ const register = async (userData) => {
 const login = async (username, password, phone, verificationCode, clientIP) => {
   // 🚨 确保至少有一个有效值
   if (!username && !phone) {
-    throw new Error("用户名或手机号必填");
+    throw new Error('用户名或手机号必填');
   }
 
   // 如果通过手机号登录
@@ -99,7 +98,6 @@ const login = async (username, password, phone, verificationCode, clientIP) => {
       include: [{ model: Role, attributes: { exclude: ['password'] }, through: { attributes: [] } }], // 确保 Role 里没有 password
     });
 
-
     if (!user) {
       throw new Error(`${username} 用户不存在`);
     }
@@ -126,19 +124,64 @@ const login = async (username, password, phone, verificationCode, clientIP) => {
 };
 
 const getUserInfo = async (user) => {
-   // 获取用户并排除循环引用
-   const userData = await user.toJSON();  // 使用 toJSON() 转换为纯对象
-  
+  // 获取用户并排除循环引用
+  const userData = await user.toJSON(); // 使用 toJSON() 转换为纯对象
+
   // 查询用户最新的订单
   const latestOrder = await Order.findOne({
     where: { user_id: userData.user_id },
-    order: [["createdAt", "DESC"]] // 获取最近的一笔订单
+    order: [['createdAt', 'DESC']], // 获取最近的一笔订单
   });
   return { ...userData, latestOrder }; // 合并数据
+};
+
+const getUserOrders = async (userId, page = 1, pageSize = 10) => {
+  try {
+    // 计算偏移量
+    const offset = (page - 1) * pageSize;
+
+    // 查询订单列表，包含关联的游戏和陪玩信息
+    const { count, rows } = await Order.findAndCountAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Games,
+          as: 'game',
+          attributes: ['game_id', 'game_name', 'game_images'],
+        },
+        {
+          model: GamePartner,
+          as: 'partner',
+          attributes: ['partner_id', 'description', 'voice_intro', 'is_available'],
+          include: [
+            {
+              model: User,
+              as: 'partnerUser',
+              attributes: ['username'],
+            },
+          ],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit: pageSize,
+    });
+
+    return {
+      total: count,
+      currentPage: page,
+      pageSize,
+      orders: rows,
+    };
+  } catch (error) {
+    logger.user.error(`获取用户订单列表失败: userId=${userId}, Error=${error.message}`);
+    throw new Error('获取订单列表失败');
+  }
 };
 
 module.exports = {
   register,
   login,
-  getUserInfo
+  getUserInfo,
+  getUserOrders,
 };

@@ -4,7 +4,6 @@ module.exports = function (sequelize, DataTypes) {
     'game_partners',
     {
       partner_id: {
-        autoIncrement: true,
         type: DataTypes.BIGINT,
         allowNull: false,
         primaryKey: true,

@@ -68,11 +68,27 @@ const getUserInfo = async (req, res) => {
     // 返回错误响应
     res.status(500).json(errorResponse(error.message));
   }
-}
+};
+
+const getUserOrders = async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10 } = req.query;
+
+    // 调用服务层获取用户订单列表
+    const orders = await userService.getUserOrders(req.user.user_id, parseInt(page), parseInt(pageSize));
+
+    logger.user.info(`获取用户订单列表成功: userId=${req.user.user_id}`);
+    res.status(200).json(successResponse(orders, '获取订单列表成功'));
+  } catch (error) {
+    logger.user.error(`获取用户订单列表失败: userId=${req.user.user_id}, Error=${error.message}`);
+    res.status(500).json(errorResponse(error.message));
+  }
+};
 
 module.exports = {
   register,
   login,
   getUserInfo,
-  sendVerificationCode
+  sendVerificationCode,
+  getUserOrders,
 };

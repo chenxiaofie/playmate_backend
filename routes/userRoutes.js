@@ -16,4 +16,7 @@ router.post('/send-verification-code', userController.sendVerificationCode);
 // 获取用户信息
 router.get('/userInfo', authenticate, userController.getUserInfo);
 
+// 获取用户订单列表
+router.get('/orders', authenticate, userController.getUserOrders);
+
 module.exports = router;
