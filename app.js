@@ -7,6 +7,7 @@ const { errorResponse } = require('./utils/response');
 const swaggerSetup = require('./doc/swagger'); // 引入 Swagger 配置
 const logger = require('./utils/logger'); // 引入日志模块
 const middlewares = require('./middlewares'); // 自动引入 index.js
+const path = require('path');
 const app = express();
 // 使用中间件
 app.use(middlewares.getClientIP);
@@ -21,6 +22,8 @@ app.use((req, res, next) => {
   next();
 });
 
+// 设置静态文件目录
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 路由
 app.use('/api', routes);

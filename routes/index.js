@@ -3,8 +3,9 @@ const userRoutes = require('./userRoutes');
 const gameRoutes = require('./gameRoutes');
 const orderRoutes = require('./orderRoutes');
 const paymentRoutes = require('./paymentRoutes');
-const subscriptions  = require('./subscriptions');
-const teams  = require('./teams');
+const subscriptions = require('./subscriptions');
+const teams = require('./teams');
+const audioRoutes = require('./audioRoutes');
 
 const router = express.Router();
 
@@ -16,6 +17,8 @@ router.use('/games', gameRoutes);
 router.use('/subscriptions', subscriptions);
 // 团队路由
 router.use('/teams', teams);
+// 音频路由
+router.use('/audio', audioRoutes);
 
 // 订单路由
 // router.use('/orders', orderRoutes);
