@@ -41,5 +41,7 @@ Zjsyb-vueNew.iml
 /dist.zip
 
 /logs/*
-/models11/*
+/models11/*             
 /index.html
+/dist/*                 
+/uploads/*
