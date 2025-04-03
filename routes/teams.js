@@ -9,8 +9,8 @@ router.post('/', authenticate, teamController.createTeam);
 // // 获取所有团队
 // router.get('/', authenticate,authenticate('顶级管理员') ,teamController.getAllTeams);
 
-// // 根据 ID 获取单个团队
-// router.get('/:id', authenticate, teamController.getTeamById);
+// 根据 ID 获取单个团队
+router.get('/:id', authenticate, teamController.getTeamById);
 
 // // 更新团队
 // router.put('/:id', authenticate, teamController.updateTeam);

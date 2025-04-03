@@ -19,4 +19,7 @@ router.get('/userInfo', authenticate, userController.getUserInfo);
 // 获取用户订单列表
 router.get('/orders', authenticate, userController.getUserOrders);
 
+// 更新用户信息
+router.put('/info', authenticate, userController.updateUserInfo);
+
 module.exports = router;

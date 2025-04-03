@@ -8,9 +8,10 @@ const {
   GamePartnerPrice,
   PartnerGameTag,
   TeamMember,
-  Tag,
   Games,
   GameTag,
+  Tag,
+  User,
 } = require('../models');
 const logger = require('../utils/logger'); // 引入日志模块
 const { Op } = require('sequelize');
@@ -197,7 +198,200 @@ const joinTeam = async ({ teamId, userId, gamesData, description, voiceIntro }) 
   }
 };
 
+// 获取团队信息
+const getTeamById = async (teamId, filters = {}) => {
+  const { gameId, tagId, partnerName } = filters;
+
+  // 首先获取团队基本信息
+  const team = await Team.findByPk(teamId);
+
+  if (!team) {
+    throw new Error('团队不存在');
+  }
+
+  // 如果有过滤条件，则查询符合条件的成员
+  if (gameId || tagId || partnerName) {
+    const teamMemberWhere = {
+      pending: 'approved',
+    };
+
+    const userWhere = partnerName
+      ? {
+          username: {
+            [Op.like]: `%${partnerName}%`,
+          },
+        }
+      : {};
+
+    const priceWhere = gameId
+      ? {
+          game_id: gameId,
+        }
+      : {};
+
+    const tagWhere = tagId
+      ? {
+          tag_id: tagId,
+        }
+      : {};
+
+    const includeConditions = [
+      {
+        model: TeamMember,
+        as: 'teamMembers',
+        attributes: ['user_id', 'pending', 'partner_id'],
+        where: teamMemberWhere,
+        required: true,
+        include: [
+          {
+            model: User,
+            as: 'memberUser',
+            attributes: ['user_id', 'username', 'avatar', 'gender'],
+            where: userWhere,
+            required: !!partnerName,
+          },
+          {
+            model: GamePartner,
+            as: 'memberPartner',
+            attributes: ['partner_id', 'description', 'voice_intro', 'is_available'],
+            required: true,
+            include: [
+              {
+                model: GamePartnerPrice,
+                as: 'partnerPrices',
+                attributes: ['game_id', 'price_per_hour', 'rank_data'],
+                where: priceWhere,
+                required: !!gameId,
+                include: [
+                  {
+                    model: Games,
+                    as: 'priceGame',
+                    attributes: ['game_name', 'game_images'],
+                  },
+                ],
+              },
+              {
+                model: PartnerGameTag,
+                as: 'partnerGameTags',
+                attributes: ['tag_id'],
+                where: tagWhere,
+                required: !!tagId,
+                include: [
+                  {
+                    model: Tag,
+                    as: 'partnerTag',
+                    attributes: ['tag_name'],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    // 获取符合条件的成员
+    const teamWithMembers = await Team.findByPk(teamId, {
+      include: includeConditions,
+    });
+
+    team.teamMembers = teamWithMembers?.teamMembers || [];
+  } else {
+    // 如果没有过滤条件，获取所有成员
+    const teamWithMembers = await Team.findByPk(teamId, {
+      include: [
+        {
+          model: TeamMember,
+          as: 'teamMembers',
+          attributes: ['user_id', 'pending', 'partner_id'],
+          where: { pending: 'approved' },
+          include: [
+            {
+              model: User,
+              as: 'memberUser',
+              attributes: ['user_id', 'username', 'avatar', 'gender'],
+            },
+            {
+              model: GamePartner,
+              as: 'memberPartner',
+              attributes: ['partner_id', 'description', 'voice_intro', 'is_available'],
+              include: [
+                {
+                  model: GamePartnerPrice,
+                  as: 'partnerPrices',
+                  attributes: ['game_id', 'price_per_hour', 'rank_data'],
+                  include: [
+                    {
+                      model: Games,
+                      as: 'priceGame',
+                      attributes: ['game_name', 'game_images'],
+                    },
+                  ],
+                },
+                {
+                  model: PartnerGameTag,
+                  as: 'partnerGameTags',
+                  attributes: ['tag_id'],
+                  include: [
+                    {
+                      model: Tag,
+                      as: 'partnerTag',
+                      attributes: ['tag_name'],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    team.teamMembers = teamWithMembers?.teamMembers || [];
+  }
+
+  // 格式化返回数据
+  const formattedTeam = {
+    team_id: team.team_id,
+    team_name: team.team_name,
+    owner_id: team.owner_id,
+    max_members: team.max_members,
+    created_at: team.createdAt,
+    updated_at: team.updatedAt,
+    members: team.teamMembers.map((member) => ({
+      user_id: member.user_id,
+      username: member.memberUser?.username,
+      avatar: member.memberUser?.avatar,
+      gender: member.memberUser?.gender,
+      partner_info: member.memberPartner
+        ? {
+            partner_id: member.memberPartner.partner_id,
+            description: member.memberPartner.description,
+            voice_intro: member.memberPartner.voice_intro,
+            is_available: member.memberPartner.is_available,
+            games: member.memberPartner.partnerPrices?.map((price) => ({
+              game_id: price.game_id,
+              game_name: price.priceGame?.game_name,
+              game_images: price.priceGame?.game_images,
+              price_per_hour: price.price_per_hour,
+              rank_data: JSON.parse(price.rank_data),
+              tags: member.memberPartner.partnerGameTags
+                ?.filter((tag) => tag.tag_id)
+                .map((tag) => ({
+                  tag_id: tag.tag_id,
+                  tag_name: tag.partnerTag?.tag_name,
+                })),
+            })),
+          }
+        : null,
+    })),
+  };
+
+  return formattedTeam;
+};
+
 module.exports = {
   createTeam,
   joinTeam,
+  getTeamById,
 };

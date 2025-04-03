@@ -179,9 +179,65 @@ const getUserOrders = async (userId, page = 1, pageSize = 10) => {
   }
 };
 
+const updateUserInfo = async (userId, updateData) => {
+  try {
+    // 参数校验
+    if (!userId) {
+      throw new Error('用户ID必填');
+    }
+
+    // 构建更新数据
+    const allowedFields = ['username', 'avatar', 'gender', 'phone'];
+    const updateFields = {};
+
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        updateFields[field] = updateData[field];
+      }
+    }
+
+    // 如果没有可更新的字段
+    if (Object.keys(updateFields).length === 0) {
+      throw new Error('没有需要更新的字段');
+    }
+
+    // 如果更新用户名，检查是否已存在
+    if (updateFields.username) {
+      const existingUser = await User.findOne({
+        where: { username: updateFields.username },
+      });
+      if (existingUser && existingUser.user_id !== userId) {
+        throw new Error('用户名已存在');
+      }
+    }
+
+    // 更新用户信息
+    const [updatedCount] = await User.update(updateFields, {
+      where: { user_id: userId },
+    });
+
+    if (updatedCount === 0) {
+      throw new Error('用户不存在');
+    }
+
+    // 获取更新后的用户信息
+    const updatedUser = await User.findOne({
+      where: { user_id: userId },
+      include: [{ model: Role, through: { attributes: [] } }],
+    });
+
+    logger.user.info(`用户信息更新成功: userId=${userId}`);
+    return updatedUser.toJSON();
+  } catch (error) {
+    logger.user.error(`更新用户信息失败: userId=${userId}, error=${error.message}`);
+    throw new Error(`更新用户信息失败：${error.message}`);
+  }
+};
+
 module.exports = {
   register,
   login,
   getUserInfo,
   getUserOrders,
+  updateUserInfo,
 };

@@ -33,7 +33,26 @@ const joinTeam = async (req, res) => {
   }
 };
 
+// 获取团队信息
+const getTeamById = async (req, res) => {
+  try {
+    const teamId = req.params.id;
+    const { gameId, tagId, partnerName } = req.query; // 从查询参数获取过滤条件
+
+    const team = await teamService.getTeamById(teamId, {
+      gameId: gameId ? parseInt(gameId) : undefined,
+      tagId: tagId ? parseInt(tagId) : undefined,
+      partnerName,
+    });
+
+    res.status(200).json(successResponse(team));
+  } catch (error) {
+    res.status(500).json(errorResponse(error.message));
+  }
+};
+
 module.exports = {
   createTeam,
   joinTeam,
+  getTeamById,
 };

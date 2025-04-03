@@ -85,10 +85,28 @@ const getUserOrders = async (req, res) => {
   }
 };
 
+const updateUserInfo = async (req, res) => {
+  try {
+    const userId = req.user.user_id; // 从认证中间件获取当前用户ID
+    const updateData = req.body;
+
+    // 调用服务层更新用户信息
+    const updatedUser = await userService.updateUserInfo(userId, updateData);
+
+    // 返回成功响应
+    res.status(200).json(successResponse(updatedUser, '用户信息更新成功'));
+  } catch (error) {
+    logger.user.error(`更新用户信息失败: userId=${req.user.user_id}, error=${error.message}`);
+    // 返回错误响应
+    res.status(400).json(errorResponse(error.message));
+  }
+};
+
 module.exports = {
   register,
   login,
   getUserInfo,
   sendVerificationCode,
   getUserOrders,
+  updateUserInfo,
 };
