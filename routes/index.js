@@ -21,7 +21,7 @@ router.use('/teams', teams);
 router.use('/audio', audioRoutes);
 
 // 订单路由
-// router.use('/orders', orderRoutes);
+router.use('/orders', orderRoutes);
 
 // 支付路由
 // router.use('/payments', paymentRoutes);

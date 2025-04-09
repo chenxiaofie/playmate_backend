@@ -33,7 +33,13 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.BOOLEAN,
         allowNull: true,
         defaultValue: 0,
-        comment: ' 是否可用',
+        comment: '是否可接单',
+      },
+      status: {
+        type: DataTypes.ENUM('idle', 'busy', 'offline'),
+        allowNull: false,
+        defaultValue: 'idle',
+        comment: '陪玩状态：空闲、陪玩中、离线',
       },
     },
     {

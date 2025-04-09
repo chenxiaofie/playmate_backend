@@ -1,13 +1,15 @@
+const { v4: uuidv4 } = require('uuid');
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
     'orders',
     {
       order_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        comment: '订单唯一标识',
+        comment: '交易唯一标识',
+        defaultValue: () => uuidv4(),
       },
       user_id: {
         type: DataTypes.BIGINT,
@@ -27,6 +29,11 @@ module.exports = function (sequelize, DataTypes) {
           key: 'partner_id',
         },
       },
+      order_type: {
+        type: DataTypes.ENUM('reservation', 'instant'),
+        allowNull: false,
+        comment: '订单类型：预约订单、即时订单',
+      },
       start_time: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -35,7 +42,12 @@ module.exports = function (sequelize, DataTypes) {
       end_time: {
         type: DataTypes.DATE,
         allowNull: true,
-        comment: '陪玩结束时间 ',
+        comment: '陪玩结束时间',
+      },
+      hours: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        comment: '陪玩小时数',
       },
       total_price: {
         type: DataTypes.DECIMAL(10, 2),
@@ -43,15 +55,15 @@ module.exports = function (sequelize, DataTypes) {
         comment: '总价格',
       },
       order_status: {
-        type: DataTypes.ENUM('pending', 'completed', 'cancelled'),
+        type: DataTypes.ENUM('pending', 'in_progress', 'completed', 'cancelled'),
         allowNull: true,
         defaultValue: 'pending',
-        comment: '订单状态',
+        comment: '订单状态：待处理、执行中、已完成、已取消',
       },
       payment_status: {
         type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded'),
         allowNull: true,
-        comment: '支付状态:“待定”、“已付款”、“失败”、“已退款”',
+        comment: '支付状态:"待定"、"已付款"、"失败"、"已退款"',
       },
       payment_method: {
         type: DataTypes.ENUM('payment_account', 'qr_code'),
@@ -72,6 +84,27 @@ module.exports = function (sequelize, DataTypes) {
           model: 'games',
           key: 'game_id',
         },
+      },
+      remark: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: '订单备注',
+      },
+      queue_position: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+        comment: '队列中的位置，0表示不在队列中',
+      },
+      queue_start_time: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        comment: '进入队列的时间',
+      },
+      estimated_start_time: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        comment: '预计开始时间',
       },
     },
     {
@@ -99,6 +132,27 @@ module.exports = function (sequelize, DataTypes) {
           name: 'game_partner2',
           using: 'BTREE',
           fields: [{ name: 'partner_id' }],
+        },
+        {
+          name: 'unique_partner_time_slot',
+          unique: true,
+          using: 'BTREE',
+          fields: [{ name: 'partner_id' }, { name: 'start_time' }, { name: 'end_time' }, { name: 'order_status' }],
+          where: {
+            order_status: {
+              [Sequelize.Op.in]: ['pending', 'in_progress'],
+            },
+          },
+        },
+        {
+          name: 'idx_queue_position',
+          using: 'BTREE',
+          fields: [{ name: 'queue_position' }],
+        },
+        {
+          name: 'idx_queue_start_time',
+          using: 'BTREE',
+          fields: [{ name: 'queue_start_time' }],
         },
       ],
     }

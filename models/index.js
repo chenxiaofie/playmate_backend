@@ -24,6 +24,7 @@ const PartnerGameTag = require('./partner_games_tags')(sequelize, Sequelize);
 const Tag = require('./tags')(sequelize, Sequelize);
 const GameTag = require('./games_tags')(sequelize, Sequelize);
 const TeamMember = require('./team_members')(sequelize, Sequelize);
+const Transaction = require('./transactions')(sequelize, Sequelize);
 
 // 游戏关联
 Games.hasMany(GamePartnerPrice, { as: 'gamePartnerPrices', foreignKey: 'game_id' });
@@ -41,7 +42,7 @@ Role.hasMany(userRoles, { as: 'roleUserRoles', foreignKey: 'role_id' });
 Order.belongsTo(User, { as: 'orderUser', foreignKey: 'user_id' });
 Order.belongsTo(GamePartner, { as: 'partner', foreignKey: 'partner_id' });
 Order.belongsTo(Games, { as: 'game', foreignKey: 'game_id' });
-
+Order.hasMany(Transaction, { as: 'transactions', foreignKey: 'order_id' });
 // 用户角色表
 userRoles.belongsTo(Role, { as: 'userRole', foreignKey: 'role_id' });
 userRoles.belongsTo(User, { as: 'roleUser', foreignKey: 'user_id' });
@@ -55,6 +56,7 @@ User.hasMany(customLimits, { as: 'userCustomLimits', foreignKey: 'user_id' });
 User.hasMany(TeamMember, { as: 'userTeamMembers', foreignKey: 'user_id' });
 User.hasMany(Order, { as: 'userOrders', foreignKey: 'user_id' });
 User.hasMany(merchantSubscriptions, { as: 'userMerchantSubscriptions', foreignKey: 'user_id' });
+User.hasMany(Transaction, { as: 'userTransactions', foreignKey: 'user_id' });
 
 // 团队关联
 Team.belongsTo(User, { as: 'teamOwner', foreignKey: 'owner_id' });
@@ -74,6 +76,7 @@ GamePartner.hasMany(PartnerGameTag, { as: 'partnerGameTags', foreignKey: 'partne
 GamePartner.hasMany(GamePartnerPrice, { as: 'partnerPrices', foreignKey: 'partner_id' });
 GamePartner.hasMany(TeamMember, { as: 'partnerTeamMembers', foreignKey: 'partner_id' });
 GamePartner.hasMany(Order, { as: 'orders', foreignKey: 'partner_id' });
+GamePartner.hasMany(Transaction, { as: 'transactions', foreignKey: 'partner_id' });
 
 // 陪玩游戏单价
 GamePartnerPrice.belongsTo(GamePartner, { as: 'pricePartner', foreignKey: 'partner_id' });
@@ -99,6 +102,11 @@ TeamMember.belongsTo(Role, { as: 'memberRole', foreignKey: 'role_id' });
 TeamMember.belongsTo(Team, { as: 'memberTeam', foreignKey: 'team_id' });
 TeamMember.belongsTo(User, { as: 'memberUser', foreignKey: 'user_id' });
 
+// 交易
+Transaction.belongsTo(User, { as: 'transactionUser', foreignKey: 'user_id' });
+Transaction.belongsTo(Order, { as: 'transactionOrder', foreignKey: 'order_id' });
+Transaction.belongsTo(GamePartner, { as: 'transactionPartner', foreignKey: 'partner_id' });
+
 module.exports = {
   sequelize,
   Role,
@@ -116,4 +124,5 @@ module.exports = {
   GameTag,
   TeamMember,
   GamePartnerPrice,
+  Transaction,
 };

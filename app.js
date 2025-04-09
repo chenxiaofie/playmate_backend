@@ -8,7 +8,10 @@ const swaggerSetup = require('./doc/swagger'); // 引入 Swagger 配置
 const logger = require('./utils/logger'); // 引入日志模块
 const middlewares = require('./middlewares'); // 自动引入 index.js
 const path = require('path');
+const tasks = require('./tasks'); // 引入定时任务模块
+
 const app = express();
+
 // 使用中间件
 app.use(middlewares.getClientIP);
 // 中间件
@@ -31,9 +34,12 @@ app.use('/api', routes);
 // 初始化 Swagger 文档
 swaggerSetup(app);
 
+// 启动定时任务
+tasks.startTasks();
+
 // 404 处理
 app.use((req, res, next) => {
-  logger.error(`404错误: ${err.message}`);
+  logger.error(`404错误: ${req.url}`);
   res.status(404).json(errorResponse('Not Found'));
 });
 
